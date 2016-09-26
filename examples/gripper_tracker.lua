@@ -11,7 +11,7 @@ local xgl = require 'xgl'
 
 
 local CALIBRATION_DATA_FILENAME = 'data/rgb_camIntrinsics_v2.t7'
-local GRIPPER_MODEL_FILENAME = '../../../kahlkopf/gripper jaws/weiss/xamla_jaw_weiss_w3.stl'
+local GRIPPER_MODEL_FILENAME = 'data/xamla_jaw_weiss_w3.stl'
 local GRIPPER_MARKER_OFFSET =  xgl.rotateAxis({0,0,1}, -0.5 * math.pi) * xgl.translate({-0.0125, -0.0050, 0.0})
 local LEFT_UPPER_CORNER_TO_ORIGIN = xgl.translate({-0.00129, 0.00177, 12.375})
 local MM_TO_M = xgl.scale(0.001)

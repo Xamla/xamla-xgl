@@ -83,7 +83,7 @@ void main() {
   vec3 specular = specularStrength * spec * lightColor;
 
   vec3 result = (ambient + diffuse + specular) * mix(material.diffuse, vec3(VertexColor), VertexColor[3]);
-  color = vec4(result, 1);
+  color = vec4(result, material.opacity);
 }
 ]]
 

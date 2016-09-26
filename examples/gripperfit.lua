@@ -9,16 +9,15 @@ local xgl = require 'xgl'
 local image = require 'image'
 
 
-local LEFT_UPPER_CORNER_TO_ORIGIN = xgl.translate({-0.00129, 0.00177, 12.375})
-local MM_TO_M = xgl.scale(0.001)
+local CALIBRATION_DATA_FILENAME = 'data/rgb_camIntrinsics_v2.t7'
+local PATTERN_FILENAME = 'data/gripper1.jpg'
+local GRIPPER_MODEL_FILE = 'data/xamla_jaw_weiss_w3.stl'
 
 -- rough estimate of marker offest
 local GRIPPER_MARKER_OFFSET =  xgl.rotateAxis({0,0,1}, -0.5 * math.pi) * xgl.translate({-0.0125, -0.0050, 0.0})
+local LEFT_UPPER_CORNER_TO_ORIGIN = xgl.translate({-0.00129, 0.00177, 12.375})
+local MM_TO_M = xgl.scale(0.001)
 
-
-
-
-local CALIBRATION_DATA_FILENAME = 'data/rgb_camIntrinsics_v2.t7'
 --[[
 {
   1 : 8
@@ -42,10 +41,6 @@ th> x[6]
     0.0000     0.0000     1.0000
 [torch.DoubleTensor of size 3x3]
 ]]
-
-
-local PATTERN_FILENAME = 'data/gripper1.jpg'
-
 
 local calibration_data = torch.load(CALIBRATION_DATA_FILENAME)
 local pattern = { type = cv.CALIB_CB_ASYMMETRIC_GRID, geom = { height = 5, width = 4 }, point_size = 1.5 }
@@ -130,38 +125,32 @@ local marker_pose = generatePose(target_rot, target_pos)
 print("Estimated Pose:")
 print(marker_pose)
 
-local gripper_file = '../../../kahlkopf/gripper jaws/weiss/xamla_jaw_weiss_w3.stl'
 
+-- initialize xgl
 local w,h = calibration_data[5][1], calibration_data[5][2]
 xgl.init(true, w, h)
 
 
-
 local scene = xgl.SimpleScene()
 
-
+-- prepare camera
 local camera = xgl.Camera()
-
-
-scene:setCamera(camera)
--- set camera intrinsics
 local fx = camera_matrix[{1,1}]
 local fy = camera_matrix[{2,2}]
 local cx = camera_matrix[{1,3}]
 local cy = camera_matrix[{2,3}]
-
 camera:setIntrinsics(fx, fy, cx, h - cy, w, h)      -- (h - cy) inverts the vertical principal point center-offset
-
 camera:lookAt({0,0,0}, {0,0,1}, {0,-1,0})
+scene:setCamera(camera)
 
 local fullScreenShader = xgl.Shader("../shaders/FullScreen.VertexShader.glsl", "../shaders/FullScreen.FragmentShader.glsl")
 local overlayQuad = scene:addQuad(2,2, fullScreenShader, 'undistorted_input.png', 1, true)
 
-local shader = xgl.Shader("../shaders/Basic.VertexShader.glsl", "../shaders/BasicLighting.FragmentShader.glsl")
-local model = xgl.Model(shader, gripper_file)
+
+local shader = xgl.getDefaultShader()
+local model = xgl.Model(shader, GRIPPER_MODEL_FILE)
 model:getMeshAt(1):getMaterial():setOpacity(0.5)
 scene:addModel(model)
-
 
 local s0 = xgl.geo.sphere(0.001, 1)
 local s1 = xgl.geo.sphere(0.0005, 1)
@@ -187,6 +176,5 @@ while not xgl.windowShouldClose() do
   xgl.pollEvents()
   sys.sleep(0.1)
 end
-
 
 main()

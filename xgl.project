@@ -126,6 +126,7 @@
     <File Name="examples/gripperfit.lua"/>
     <File Name="examples/gripper_tracker.lua"/>
     <File Name="examples/renderdepth.lua"/>
+    <File Name="examples/geo_objects.lua"/>
   </VirtualDirectory>
   <VirtualDirectory Name="shaders">
     <File Name="shaders/Basic.VertexShader.glsl"/>

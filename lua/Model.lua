@@ -23,6 +23,7 @@ end
 local f = init()
 
 function Model:__init(default_shader, model_filename)
+  default_shader = default_shader or xgl.getDefaultShader()
   self.o = f.new(default_shader:cdata())
   if model_filename ~= nil then
     self:loadModel(model_filename)

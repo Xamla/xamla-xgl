@@ -91,7 +91,6 @@ local function icosahedron()
   return vertices, triangles
 end
 
-
 local function removeDuplicateVertices(vertices, indices)
   local remapping = {}
   local vertex_order = range(1, #vertices)
@@ -131,9 +130,7 @@ local function removeDuplicateVertices(vertices, indices)
   return new_vertices, indices
 end
 
-
 local function generateSphereMesh(radius, subdivision_level)
-
   local vertices, triangles = icosahedron()
 
   local function halfway(a,b)
@@ -193,6 +190,104 @@ local function generateSphereMesh(radius, subdivision_level)
   index_buffer:csub(1)
 
   return vertex_buffer, index_buffer
+end
+
+local function circlePoints(n, center, rotor, rotatation_matrix_fn)
+  radius = radius or 1
+  center = center or torch.FloatTensor(3):zero()
+  if type(center) == 'table' then
+    center = torch.FloatTensor(center)
+  end
+
+  local points = torch.FloatTensor(n, 3)
+  for i=1,n do
+    local frac = (i-1) / n
+    local angle = frac * 2 * math.pi
+    local R = rotatation_matrix_fn(angle)
+    points[i] = center + R * rotor
+  end
+  return points
+end
+
+-- rotate around y-axis
+local function circlePointsXZ(n, center, radius)
+  local rotor = torch.FloatTensor({1,0,0}) * radius
+  return circlePoints(n, center, rotor, function(angle)
+    local c,s = math.cos(angle), math.sin(angle)
+    return torch.FloatTensor({
+      {  c,  0, -s },
+      {  0,  1,  0 },
+      {  s,  0,  c }
+    })
+  end)
+end
+
+-- rotate around z-axis
+local function circlePointsXY(n, center, radius)
+  local rotor = torch.FloatTensor({1,0,0}) * radius
+  return circlePoints(n, center, rotor, function(angle)
+    local c,s = math.cos(angle), math.sin(angle)
+    return torch.FloatTensor({
+      {  c, -s,  0 },
+      {  s,  c,  0 },
+      {  0,  0,  1 }
+    })
+  end)
+end
+
+local function generateDiskMesh(radius, segment_count)
+  radius = radius or 1
+  segment_count = segment_count or 32
+  local vertices = torch.FloatTensor(segment_count + 1, 12):zero()
+  local vertices = torch.rand(segment_count + 1, 12):float()
+  vertices[{1,{1,3}}]:zero()
+  vertices[{{2,segment_count+1},{1,3}}] = circlePointsXY(segment_count, {0,0,0}, radius)
+  vertices[{{1,segment_count+1},{4,6}}] = torch.FloatTensor({0,0,1}):repeatTensor(vertices:size(1),1)     -- normals
+  vertices[{{1,segment_count+1},{9,12}}] = 1   -- default color white
+
+  local indices = torch.IntTensor(3 * segment_count)
+
+  local j = segment_count -- last
+  for i=1,segment_count do
+    indices[i*3-2] = 0
+    indices[i*3-1] = i
+    indices[i*3-0] = j
+    j = i
+  end
+
+  return vertices, indices
+end
+
+--[[
+function geo.cuboidMesh(width, height, thickness, material)
+  local vertices = torch.FloatTensor(6 * 4) -- each side of box get individual normals
+  local indices = torch.IntTensor(6 * 4 * 2)
+
+end
+
+function geo.cuboid(width, height, thickness, material)
+  material = material or xgl.getDefaultMaterial()
+  local model = xgl.Model(material:getShader())
+  local mesh = geo.cuboidMesh(width, height, thickness, material)
+  model:addMesh(mesh)
+  return model
+end
+
+function geo.cubeMesh(side_length, material)
+  return geo.cuboidMesh(side_length, side_length, side_length, material)
+end]]
+
+function geo.diskMesh(radius, segment_count, material)
+  local vertices, indices = generateDiskMesh(radius, segment_count)
+  return xgl.Mesh(vertices, indices, material)
+end
+
+function geo.disk(radius, segment_count, matrerial)
+  material = material or xgl.getDefaultMaterial()
+  local model = xgl.Model(material:getShader())
+  local mesh = geo.diskMesh(radius, segment_count, material)
+  model:addMesh(mesh)
+  return model
 end
 
 function geo.sphereMesh(radius, subdivision_level, material)

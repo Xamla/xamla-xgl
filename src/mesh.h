@@ -71,6 +71,10 @@ public:
     }
   }
 
+  std::vector<Vertex> *getVertices(){
+    return &vertices;
+  }
+
   const std::shared_ptr<Material>& getMaterial() const { return material; }
   void setMaterial(const std::shared_ptr<Material>& material) { this->material = material; }
 

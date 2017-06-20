@@ -99,6 +99,7 @@ void xgl_Mesh_delete(MeshHandle *mesh);
 void xgl_Mesh_create(MeshHandle *mesh, THFloatTensor *vertices, THIntTensor *indices, MaterialHandle *material);
 void xgl_Mesh_release(MeshHandle *mesh);
 bool xgl_Mesh_isNull(MeshHandle *mesh);
+void xgl_Mesh_getVertices(MeshHandle *mesh, THFloatTensor *verticesToWrite);
 void xgl_Mesh_getMaterial(MeshHandle *mesh, MaterialHandle *output);
 void xgl_Mesh_setMaterial(MeshHandle *mesh, MaterialHandle *input);
 

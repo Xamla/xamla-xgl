@@ -334,25 +334,25 @@ void FloatTensorToVertices(THFloatTensor *tensor, std::vector<Vertex> &vertices)
   THFloatTensor_free(tensor);
 }
 
-void VerticesToFloatTensor(THFloatTensor* verticesToWrite, std::vector<Vertex>* verticesFromMesh) {
+void VerticesToFloatTensor(THFloatTensor *verticesToWrite,const std::vector<Vertex> *verticesFromMesh) {
   int numberOfVertices = verticesFromMesh->size();
   bool hasNormal = false;
   bool hasTexCoords = false;
   bool hasColor = false;
   int numRows = 3;
 
-  if (numberOfVertices > 0){
-    if ((*verticesFromMesh)[0].Normal[0]){
+  if (numberOfVertices > 0) {
+    if ((*verticesFromMesh)[0].Normal[0]) {
       hasNormal = true;
       numRows += 3;
     }
 
-    if ((*verticesFromMesh)[0].TexCoords[0]){
+    if ((*verticesFromMesh)[0].TexCoords[0]) {
       hasTexCoords = true;
       numRows += 2;
     }
 
-    if ((*verticesFromMesh)[0].Color[0]){
+    if ((*verticesFromMesh)[0].Color[0]) {
       hasColor = true;
       numRows += 4;
     }
@@ -368,21 +368,18 @@ void VerticesToFloatTensor(THFloatTensor* verticesToWrite, std::vector<Vertex>* 
       data[1] = (*verticesFromMesh)[i].Position[1];
       data[2] = (*verticesFromMesh)[i].Position[2];
 
-      if (hasNormal)
-      {
+      if (hasNormal) {
         data[3] = (*verticesFromMesh)[i].Normal[0];
         data[4] = (*verticesFromMesh)[i].Normal[1];
         data[5] = (*verticesFromMesh)[i].Normal[2];
       }
 
-      if (hasTexCoords)
-      {
+      if (hasTexCoords) {
         data[6] = (*verticesFromMesh)[i].TexCoords[0];
         data[7] = (*verticesFromMesh)[i].TexCoords[1];
       }
 
-      if (hasColor)
-      {
+      if (hasColor) {
         data[8] = (*verticesFromMesh)[i].Color[0];
         data[9] = (*verticesFromMesh)[i].Color[1];
         data[10] = (*verticesFromMesh)[i].Color[2];

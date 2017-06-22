@@ -334,6 +334,69 @@ void FloatTensorToVertices(THFloatTensor *tensor, std::vector<Vertex> &vertices)
   THFloatTensor_free(tensor);
 }
 
+void VerticesToFloatTensor(THFloatTensor *verticesToWrite,const std::vector<Vertex> *verticesFromMesh) {
+  int numberOfVertices = verticesFromMesh->size();
+  bool hasNormal = false;
+  bool hasTexCoords = false;
+  bool hasColor = false;
+  int numRows = 3;
+
+  if (numberOfVertices > 0) {
+    if ((*verticesFromMesh)[0].Normal[0]) {
+      hasNormal = true;
+      numRows += 3;
+    }
+
+    if ((*verticesFromMesh)[0].TexCoords[0]) {
+      hasTexCoords = true;
+      numRows += 2;
+    }
+
+    if ((*verticesFromMesh)[0].Color[0]) {
+      hasColor = true;
+      numRows += 4;
+    }
+
+    //resize tensor to #numVertices x 3 for the three position arguments
+    THFloatTensor_resize2d(verticesToWrite, numberOfVertices, numRows);
+
+    //get pointer to data
+    float *data = THFloatTensor_data(verticesToWrite);
+    for (int i = 0; i < verticesFromMesh->size(); ++i) {
+
+      data[0] = (*verticesFromMesh)[i].Position[0];
+      data[1] = (*verticesFromMesh)[i].Position[1];
+      data[2] = (*verticesFromMesh)[i].Position[2];
+
+      if (hasNormal) {
+        data[3] = (*verticesFromMesh)[i].Normal[0];
+        data[4] = (*verticesFromMesh)[i].Normal[1];
+        data[5] = (*verticesFromMesh)[i].Normal[2];
+      }
+
+      if (hasTexCoords) {
+        data[6] = (*verticesFromMesh)[i].TexCoords[0];
+        data[7] = (*verticesFromMesh)[i].TexCoords[1];
+      }
+
+      if (hasColor) {
+        data[8] = (*verticesFromMesh)[i].Color[0];
+        data[9] = (*verticesFromMesh)[i].Color[1];
+        data[10] = (*verticesFromMesh)[i].Color[2];
+        data[11] = (*verticesFromMesh)[i].Color[3];
+      }
+
+      data += verticesToWrite->stride[0];
+    }
+  }
+}
+
+XGLIMP(void, Mesh, getVertices)(MeshHandle *mesh, THFloatTensor *verticesToWrite) {
+  std::vector<Vertex> *verticesFromMesh = (*mesh)->getVertices();
+
+  VerticesToFloatTensor(verticesToWrite, verticesFromMesh);
+}
+
 XGLIMP(void, Model, addMesh_Tensor)(Model *model, THFloatTensor *vertices, THIntTensor *indices, ShaderHandle *shader, THFloatTensor *color) {
   auto material = std::make_shared<Material>();
   if (shader != nullptr) {

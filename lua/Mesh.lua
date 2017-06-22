@@ -11,6 +11,7 @@ function init()
     'create',
     'release',
     'isNull',
+    'getVertices',
     'getMaterial',
     'setMaterial'
   }
@@ -41,6 +42,12 @@ end
 
 function Mesh:isNull()
   return f.isNull(self.o)
+end
+
+function Mesh:getVertices()
+  local vertices = torch.FloatTensor()
+  f.getVertices(self.o, vertices:cdata())
+  return vertices
 end
 
 function Mesh:getMaterial()
